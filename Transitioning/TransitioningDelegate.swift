@@ -17,7 +17,7 @@ struct TransitionConfig {
 
 class TransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
     
-    var transitionDuration: TimeInterval = 0.5
+    var transitionDuration: TimeInterval = 0.52
     var interactionEnabled = true
     
     weak var presentationController: PresentationController?

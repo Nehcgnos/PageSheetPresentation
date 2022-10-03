@@ -16,8 +16,8 @@ class PresentationController: UIPresentationController {
         }
     }
 
-    var isInteractive = true
-    var transitionDuration: TimeInterval = 0.5
+    var isInteractive = false
+    var transitionDuration: TimeInterval = 0.52
     let interactor = UIPercentDrivenInteractiveTransition()
     var isPresenting = true
     var maskColor = UIColor.black.withAlphaComponent(0.5)
@@ -27,8 +27,7 @@ class PresentationController: UIPresentationController {
 
     override init(presentedViewController: UIViewController, presenting presentingViewController: UIViewController?) {
         super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
-        isInteractive = true
-        interactor.timingCurve = UISpringTimingParameters(dampingRatio: 0.91, initialVelocity: CGVector(dx: 1, dy: 1))
+        interactor.timingCurve = UISpringTimingParameters(dampingRatio: 1, initialVelocity: CGVector(dx: 1, dy: 1))
         interactor.completionSpeed = 1
         interactor.wantsInteractiveStart = true
     }
@@ -40,6 +39,7 @@ class PresentationController: UIPresentationController {
     override func presentationTransitionWillBegin() {
         super.presentationTransitionWillBegin()
         guard let containerView = containerView else { return }
+        isPresenting = true
         dimmingView.alpha = 0
         dimmingView.backgroundColor = maskColor
         dimmingView.frame = containerView.bounds
@@ -78,6 +78,7 @@ class PresentationController: UIPresentationController {
 
     override func dismissalTransitionWillBegin() {
         super.dismissalTransitionWillBegin()
+        isPresenting = false
         presentingViewController.beginAppearanceTransition(true, animated: true)
         presentedViewController.transitionCoordinator?.animate(alongsideTransition: { [weak self] _ in
             self?.dimmingView.alpha = 0
@@ -99,7 +100,7 @@ extension PresentationController {
     }
 
     func interactorIfNeeded() -> UIViewControllerInteractiveTransitioning? {
-        guard isInteractive else {
+        guard interactionEnabled, isInteractive else {
             return nil
         }
         return interactor
@@ -124,7 +125,8 @@ extension PresentationController {
         case .ended:
             scrollView?.bounces = true
             isInteractive = false
-            if percent > 0.3 {
+            let velocity = gesture.velocity(in: containerView).y
+            if percent > 0.5 || velocity > 900 {
                 interactor.finish()
             } else {
                 interactor.cancel()
@@ -145,8 +147,7 @@ extension PresentationController: UIViewControllerAnimatedTransitioning {
     }
 
     func interruptibleAnimator(using context: UIViewControllerContextTransitioning) -> UIViewImplicitlyAnimating {
-        let d: CGFloat = 3
-        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: CGVector(dx: d, dy: d))
+        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: CGVector(dx: 0, dy: 0))
         let animator = UIViewPropertyAnimator(duration: transitionDuration, timingParameters: timingParameters)
         animator.isUserInteractionEnabled = true
         animator.isInterruptible = true
@@ -189,18 +190,10 @@ extension PresentationController: UIGestureRecognizerDelegate {
         guard scrollView.layer.contains(location) else {
             return true
         }
-        return scrollView.contentOffset.y == 0
+        return scrollView.contentOffset.y <= 0
     }
 
     func gestureRecognizer(_: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer) -> Bool {
         return true
-    }
-
-    func gestureRecognizer(_: UIGestureRecognizer, shouldRequireFailureOf _: UIGestureRecognizer) -> Bool {
-        return false
-    }
-
-    func gestureRecognizer(_: UIGestureRecognizer, shouldBeRequiredToFailBy _: UIGestureRecognizer) -> Bool {
-        return false
     }
 }
