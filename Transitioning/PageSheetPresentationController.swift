@@ -108,7 +108,7 @@ extension PageSheetPresentationController {
 
     @objc func handle(pan gesture: UIPanGestureRecognizer) {
         let deltaY = gesture.translation(in: containerView).y
-        let percent = deltaY / presentedViewController.view.frame.height
+        let percent = min(deltaY / presentedViewController.view.frame.height, 1)
         switch gesture.state {
         case .began:
             shouldDismiss = customDelegate?.customPresentationControllerShouldDismiss() ?? true
@@ -117,12 +117,13 @@ extension PageSheetPresentationController {
         case .changed:
             scrollView?.bounces = percent < 0
             guard percent >= 0 else { return }
-            var frame = presentedViewFrame
             var offset = deltaY
             var actualPercent = percent
             if !shouldDismiss {
-                offset = presentedViewFrame.height * 0.2 * percent
-                frame.origin.y += offset
+                let y = deltaY
+                let max = 0.25 * presentedViewFrame.height
+                offset = 2.6 * max / (1 + 4338.47 / pow(y, 1.14791))
+                print(offset)
                 actualPercent = offset / presentedViewController.view.frame.height
             }
             panChanged(with: actualPercent, offset: offset)
@@ -132,14 +133,16 @@ extension PageSheetPresentationController {
         case .ended:
             scrollView?.bounces = true
             let velocity = gesture.velocity(in: containerView).y
-            let duration = transitionDuration * min(1 - percent, 1)
             guard shouldDismiss else {
                 if percent > 0 {
+                    let offset = presentedViewController.view.frame.minY - presentedViewFrame.minY
+                    let actualPercent = offset / presentedViewFrame.height
                     customDelegate?.customPresentationControllerDidAttemptToDismiss(self)
-                    restoreViewFrame(with: duration)
+                    restoreViewFrame(with: transitionDuration * (1 - actualPercent))
                 }
                 return
             }
+            let duration = transitionDuration * min(1 - percent, 1)
             if percent > 0.4 || velocity > 900 {
                 transitionDuration = duration
                 presentedViewController.dismiss(animated: true)

@@ -46,8 +46,7 @@ class ThirdViewController: UIViewController {
         super.viewWillDisappear(animated)
         print(String(describing: self), #function)
     }
-    
-    
+
     @IBAction func switchValueChanged(_ sender: UISwitch) {
         shouldDismiss = sender.isOn
     }
@@ -73,12 +72,12 @@ extension ThirdViewController: CustomPresentationControllerDelegate {
 }
 
 extension ThirdViewController: UIAdaptivePresentationControllerDelegate {
-    func presentationControllerDidAttemptToDismiss(_: UIPresentationController) {
-        showAlert()
+    func presentationControllerShouldDismiss(_: UIPresentationController) -> Bool {
+        shouldDismiss
     }
 
-    func presentationControllerShouldDismiss(_: UIPresentationController) -> Bool {
-        return false
+    func presentationControllerDidAttemptToDismiss(_: UIPresentationController) {
+        showAlert()
     }
 }
 
