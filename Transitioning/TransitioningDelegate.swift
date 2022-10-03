@@ -7,18 +7,11 @@
 
 import UIKit
 
-struct TransitionConfig {
-    let maskColor: UIColor?
-    let isInteractionEnabled: Bool
-    let duration: TimeInterval
-    let fromViewTransform: CGAffineTransform?
-    let fromViewRect: CGRect?
-}
-
 class TransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
     
     var transitionDuration: TimeInterval = 0.52
     var interactionEnabled = true
+    var fromViewTransform: CGAffineTransform?
     
     weak var presentationController: PresentationController?
     

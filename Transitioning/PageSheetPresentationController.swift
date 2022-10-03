@@ -1,45 +1,50 @@
 //
-//  PresentationController.swift
+//  PageSheetPresentationController.swift
 //  Transitioning
 //
-//  Created by Nehcgnos on 2022/10/2.
+//  Created by Nehcgnos on 2022/10/3.
 //
 
 import UIKit
 
-class PresentationController: UIPresentationController {
-    var interactionEnabled = true {
-        didSet {
-            if !interactionEnabled {
-                isInteractive = false
-            }
-        }
+protocol CustomPresentationControllerDelegate: NSObject {
+    func customPresentationControllerShouldDismiss() -> Bool
+    func customPresentationControllerDidAttemptToDismiss(_ presentationController: UIPresentationController)
+}
+
+extension CustomPresentationControllerDelegate {
+    func customPresentationControllerShouldDismiss() -> Bool {
+        false
     }
 
-    var isInteractive = false
+    func customPresentationControllerDidAttemptToDismiss(_: UIPresentationController) {}
+}
+
+class PageSheetPresentationController: UIPresentationController {
+    enum State {
+        case presenting
+        case dismissing
+    }
+
+    var isInteractionEnabled = true
     var transitionDuration: TimeInterval = 0.52
-    let interactor = UIPercentDrivenInteractiveTransition()
-    var isPresenting = true
+    var state: State = .presenting
     var maskColor = UIColor.black.withAlphaComponent(0.5)
+    weak var customDelegate: CustomPresentationControllerDelegate?
+
     private weak var scrollView: UIScrollView?
-
     private let dimmingView = UIView()
-
-    override init(presentedViewController: UIViewController, presenting presentingViewController: UIViewController?) {
-        super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
-        interactor.timingCurve = UISpringTimingParameters(dampingRatio: 1, initialVelocity: CGVector(dx: 1, dy: 1))
-        interactor.completionSpeed = 1
-        interactor.wantsInteractiveStart = true
-    }
+    private var presentedViewFrame: CGRect = .zero
+    private var shouldDismiss = true
 
     deinit {
         print(#function)
     }
-
+    
     override func presentationTransitionWillBegin() {
         super.presentationTransitionWillBegin()
         guard let containerView = containerView else { return }
-        isPresenting = true
+        state = .presenting
         dimmingView.alpha = 0
         dimmingView.backgroundColor = maskColor
         dimmingView.frame = containerView.bounds
@@ -53,7 +58,7 @@ class PresentationController: UIPresentationController {
             break
         }
 
-        if interactionEnabled {
+        if isInteractionEnabled {
             let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handle(pan:)))
             panGesture.delegate = self
             presentedViewController.view.addGestureRecognizer(panGesture)
@@ -65,16 +70,6 @@ class PresentationController: UIPresentationController {
         }
         presentedViewController.view.frame.origin.y = containerView.frame.height
         presentedViewController.view.frame.size.height = preferredContentSize.height
-        
-        let bezierPath = UIBezierPath(
-            roundedRect: presentedViewController.view.bounds,
-            byRoundingCorners: [.topLeft, .topRight],
-            cornerRadii: CGSize(width: 10, height: 10)
-        )
-        let mask = CAShapeLayer()
-        mask.path = bezierPath.cgPath
-        presentedViewController.view.layer.mask = mask
-        
         containerView.addSubview(presentedViewController.view)
         presentedViewController.transitionCoordinator?.animate(alongsideTransition: { [weak self] _ in
             self?.dimmingView.alpha = 1
@@ -88,7 +83,7 @@ class PresentationController: UIPresentationController {
 
     override func dismissalTransitionWillBegin() {
         super.dismissalTransitionWillBegin()
-        isPresenting = false
+        state = .dismissing
         presentingViewController.beginAppearanceTransition(true, animated: true)
         presentedViewController.transitionCoordinator?.animate(alongsideTransition: { [weak self] _ in
             self?.dimmingView.alpha = 0
@@ -103,87 +98,115 @@ class PresentationController: UIPresentationController {
     }
 }
 
-extension PresentationController {
+extension PageSheetPresentationController {
     @objc func didTapDimmingView() {
-        isInteractive = false
-        presentedViewController.dismiss(animated: true)
-    }
-
-    func interactorIfNeeded() -> UIViewControllerInteractiveTransitioning? {
-        guard interactionEnabled, isInteractive else {
-            return nil
+        if let delegate = customDelegate, !delegate.customPresentationControllerShouldDismiss() {
+            return
         }
-        return interactor
+        presentedViewController.dismiss(animated: true)
     }
 
     @objc func handle(pan gesture: UIPanGestureRecognizer) {
         let deltaY = gesture.translation(in: containerView).y
         let percent = deltaY / presentedViewController.view.frame.height
-        let velocity = gesture.velocity(in: containerView).y
         switch gesture.state {
         case .began:
-            if !presentedViewController.isBeingDismissed {
-                isInteractive = true
-                presentedViewController.dismiss(animated: true)
-            }
+            shouldDismiss = customDelegate?.customPresentationControllerShouldDismiss() ?? true
+            scrollView?.bounces = false
+            presentedViewFrame = presentedViewController.view.frame
         case .changed:
             scrollView?.bounces = percent < 0
-            interactor.update(percent)
+            guard percent >= 0 else { return }
+            var frame = presentedViewFrame
+            var offset = deltaY
+            var actualPercent = percent
+            if !shouldDismiss {
+                offset = presentedViewFrame.height * 0.2 * percent
+                frame.origin.y += offset
+                actualPercent = offset / presentedViewController.view.frame.height
+            }
+            panChanged(with: actualPercent, offset: offset)
         case .cancelled:
             scrollView?.bounces = true
-            isInteractive = false
-            interactor.cancel()
+            restoreViewFrame(with: transitionDuration)
         case .ended:
             scrollView?.bounces = true
-            isInteractive = false
-            if percent > 0.5 || velocity > 900 {
-                interactor.completionSpeed = (1 - velocity) * transitionDuration
-                interactor.finish()
-                print("finish", percent, velocity)
+            let velocity = gesture.velocity(in: containerView).y
+            let duration = transitionDuration * min(1 - percent, 1)
+            guard shouldDismiss else {
+                if percent > 0 {
+                    customDelegate?.customPresentationControllerDidAttemptToDismiss(self)
+                    restoreViewFrame(with: duration)
+                }
+                return
+            }
+            if percent > 0.4 || velocity > 900 {
+                transitionDuration = duration
+                presentedViewController.dismiss(animated: true)
             } else {
-                interactor.cancel()
-                print("cancel", percent, velocity)
+                restoreViewFrame(with: duration)
             }
         default:
-            print("other", percent, velocity)
-//            interactor.cancel()
-            break
+            restoreViewFrame(with: transitionDuration)
         }
+    }
+    
+    private func panChanged(with percent: CGFloat, offset: CGFloat) {
+        var frame = presentedViewFrame
+        frame.origin.y += offset
+        presentedViewController.view.frame = frame
+        dimmingView.alpha = 1 - percent
+    }
+    
+    private func restoreViewFrame(with duration: TimeInterval) {
+        UIView.animate(
+            withDuration: duration,
+            delay: 0,
+            usingSpringWithDamping: 1,
+            initialSpringVelocity: 1,
+            options: [.allowUserInteraction, .curveEaseInOut],
+            animations: {
+                self.dimmingView.alpha = 1
+                self.presentedViewController.view.frame = self.presentedViewFrame
+            },
+            completion: nil
+        )
     }
 }
 
-extension PresentationController: UIViewControllerAnimatedTransitioning {
+extension PageSheetPresentationController: UIViewControllerAnimatedTransitioning {
     func transitionDuration(using _: UIViewControllerContextTransitioning?) -> TimeInterval {
         transitionDuration
     }
 
     func animateTransition(using context: UIViewControllerContextTransitioning) {
-        interruptibleAnimator(using: context).startAnimation()
+        startAnimation(using: context)
     }
 
-    func interruptibleAnimator(using context: UIViewControllerContextTransitioning) -> UIViewImplicitlyAnimating {
-        let timingParameters = UISpringTimingParameters(dampingRatio: 1, initialVelocity: CGVector(dx: 0, dy: 0))
-        let animator = UIViewPropertyAnimator(duration: transitionDuration, timingParameters: timingParameters)
-        animator.isUserInteractionEnabled = true
-        animator.isInterruptible = true
+    private func startAnimation(using context: UIViewControllerContextTransitioning) {
         let containerView = context.containerView
-        animator.addAnimations {
-            if self.isPresenting {
+        UIView.animate(
+            withDuration: transitionDuration,
+            delay: 0,
+            usingSpringWithDamping: 1,
+            initialSpringVelocity: 1,
+            options: [.curveEaseInOut, .allowUserInteraction]
+        ) {
+            if self.state == .presenting {
                 guard let toView = context.view(forKey: .to) else { return }
                 toView.frame.origin.y = containerView.frame.height - toView.frame.height
             } else {
                 guard let fromView = context.view(forKey: .from) else { return }
                 fromView.frame.origin.y = containerView.frame.height
             }
-        }
-        animator.addCompletion { _ in
+        } completion: { finished in
+            guard finished else { return }
             context.completeTransition(!context.transitionWasCancelled)
         }
-        return animator
     }
 }
 
-extension PresentationController: UIGestureRecognizerDelegate {
+extension PageSheetPresentationController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_ gesture: UIGestureRecognizer) -> Bool {
         guard let scrollView = scrollView else {
             return true

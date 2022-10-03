@@ -2,6 +2,7 @@
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="21225" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="rm7-Cr-9Am">
     <device id="retina6_0" orientation="portrait" appearance="light"/>
     <dependencies>
+        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21207"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="collection view cell content view" minToolsVersion="11.0"/>
@@ -115,7 +116,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="eWl-nB-VIe">
-                                <rect key="frame" x="0.0" y="100" width="390" height="744"/>
+                                <rect key="frame" x="0.0" y="147" width="390" height="697"/>
                                 <color key="backgroundColor" red="0.60392156862745094" green="0.67843137254901964" blue="0.74901960784313726" alpha="1" colorSpace="calibratedRGB"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="15" minimumInteritemSpacing="15" id="MB0-p8-jP6">
                                     <size key="itemSize" width="300" height="100"/>
@@ -146,13 +147,30 @@
                                     <outlet property="delegate" destination="AbO-JT-7eF" id="GRM-df-uUl"/>
                                 </connections>
                             </collectionView>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9ga-rW-Isy">
+                                <rect key="frame" x="144.66666666666666" y="62" width="51" height="31"/>
+                                <connections>
+                                    <action selector="switchValueChanged:" destination="AbO-JT-7eF" eventType="valueChanged" id="RVl-kI-dX6"/>
+                                </connections>
+                            </switch>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Should dismiss" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4fJ-ed-3qk">
+                                <rect key="frame" x="20.000000000000007" y="62" width="114.66666666666669" height="31"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="W0K-DV-sci"/>
                         <color key="backgroundColor" red="0.60392156862745094" green="0.67843137254901964" blue="0.74901960784313726" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
+                            <constraint firstItem="4fJ-ed-3qk" firstAttribute="top" secondItem="W0K-DV-sci" secondAttribute="top" constant="15" id="9fW-wI-7Dw"/>
+                            <constraint firstItem="9ga-rW-Isy" firstAttribute="bottom" secondItem="4fJ-ed-3qk" secondAttribute="bottom" id="Cg4-Ca-rPi"/>
                             <constraint firstItem="W0K-DV-sci" firstAttribute="trailing" secondItem="eWl-nB-VIe" secondAttribute="trailing" id="PnY-PL-09F"/>
+                            <constraint firstItem="9ga-rW-Isy" firstAttribute="leading" secondItem="4fJ-ed-3qk" secondAttribute="trailing" constant="10" id="U1w-E6-UKy"/>
+                            <constraint firstItem="4fJ-ed-3qk" firstAttribute="leading" secondItem="W0K-DV-sci" secondAttribute="leading" constant="20" id="Uax-I8-ARa"/>
                             <constraint firstAttribute="bottom" secondItem="eWl-nB-VIe" secondAttribute="bottom" id="VYL-wv-mUW"/>
-                            <constraint firstItem="eWl-nB-VIe" firstAttribute="top" secondItem="jpC-JU-Kkv" secondAttribute="top" constant="100" id="f9g-72-j7n"/>
+                            <constraint firstItem="eWl-nB-VIe" firstAttribute="top" secondItem="W0K-DV-sci" secondAttribute="top" constant="100" id="f9g-72-j7n"/>
+                            <constraint firstItem="4fJ-ed-3qk" firstAttribute="height" secondItem="9ga-rW-Isy" secondAttribute="height" id="kfu-oe-bA3"/>
                             <constraint firstItem="eWl-nB-VIe" firstAttribute="leading" secondItem="W0K-DV-sci" secondAttribute="leading" id="xID-ns-fVO"/>
                         </constraints>
                     </view>
