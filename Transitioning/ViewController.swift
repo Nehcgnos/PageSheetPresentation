@@ -31,15 +31,15 @@ class ViewController: UIViewController {
         super.viewDidDisappear(animated)
         print(String(describing: self), #function)
     }
-    
+
     @IBAction func system() {
         present(isCustomized: false)
     }
-    
+
     @IBAction func custom() {
         present(isCustomized: true)
     }
-    
+
     private func present(isCustomized: Bool) {
         let sb = UIStoryboard(name: "Main", bundle: nil)
         let thirdViewController = sb.instantiateViewController(withIdentifier: "third")
@@ -48,5 +48,4 @@ class ViewController: UIViewController {
         }
         present(thirdViewController, animated: true)
     }
-    
 }

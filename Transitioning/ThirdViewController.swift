@@ -33,9 +33,6 @@ class ThirdViewController: UIViewController {
         size.height *= 0.8
         preferredContentSize = size
         presentationController?.delegate = self
-        transitionCoordinator?.animate(alongsideTransition: { _ in
-
-        })
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -52,7 +49,7 @@ class ThirdViewController: UIViewController {
         super.viewWillDisappear(animated)
         print(String(describing: self), #function)
     }
-    
+
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         print(String(describing: self), #function)

@@ -8,28 +8,33 @@
 import UIKit
 
 class TransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
-    
     var transitionDuration: TimeInterval = 0.52
     var interactionEnabled = true
     var fromViewTransform: CGAffineTransform?
-    
+
     weak var presentationController: PresentationController?
-    
-    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+
+    func animationController(forPresented _: UIViewController, presenting _: UIViewController,
+                             source _: UIViewController) -> UIViewControllerAnimatedTransitioning?
+    {
         presentationController?.isPresenting = true
         return presentationController
     }
 
-    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+    func animationController(forDismissed _: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         presentationController?.isPresenting = false
         return presentationController
     }
-    
-    func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+
+    func interactionControllerForDismissal(using _: UIViewControllerAnimatedTransitioning)
+        -> UIViewControllerInteractiveTransitioning?
+    {
         presentationController?.interactorIfNeeded()
     }
 
-    func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
+    func presentationController(forPresented presented: UIViewController, presenting: UIViewController?,
+                                source _: UIViewController) -> UIPresentationController?
+    {
         let controller = PresentationController(presentedViewController: presented, presenting: presenting)
         controller.transitionDuration = transitionDuration
         controller.interactionEnabled = true

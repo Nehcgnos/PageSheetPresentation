@@ -17,25 +17,32 @@ struct TransitionConfig {
 }
 
 class PageSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
-    
     private let config: TransitionConfig
-    
+
     weak var presentationController: PageSheetPresentationController?
-    
+
     init(config: TransitionConfig) {
         self.config = config
     }
-    
-    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+
+    func animationController(forPresented _: UIViewController, presenting _: UIViewController,
+                             source _: UIViewController) -> UIViewControllerAnimatedTransitioning?
+    {
         presentationController
     }
 
-    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+    func animationController(forDismissed _: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         presentationController
     }
 
-    func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
-        let controller = PageSheetPresentationController(presentedViewController: presented, presenting: presenting, config: config)
+    func presentationController(forPresented presented: UIViewController, presenting: UIViewController?,
+                                source _: UIViewController) -> UIPresentationController?
+    {
+        let controller = PageSheetPresentationController(
+            presentedViewController: presented,
+            presenting: presenting,
+            config: config
+        )
         presentationController = controller
         return controller
     }

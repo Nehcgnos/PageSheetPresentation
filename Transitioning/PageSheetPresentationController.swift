@@ -26,7 +26,7 @@ class PageSheetPresentationController: UIPresentationController {
         case dismissing
     }
 
-    weak private var customDelegate: CustomPresentationControllerDelegate?
+    private weak var customDelegate: CustomPresentationControllerDelegate?
     private let config: TransitionConfig
     private var state: State = .presenting
     private weak var scrollView: UIScrollView?
@@ -34,12 +34,14 @@ class PageSheetPresentationController: UIPresentationController {
     private var presentedViewFrame: CGRect = .zero
     private var shouldDismiss = true
 
-    init(presentedViewController: UIViewController, presenting presentingViewController: UIViewController?, config: TransitionConfig) {
+    init(presentedViewController: UIViewController, presenting presentingViewController: UIViewController?,
+         config: TransitionConfig)
+    {
         self.config = config
         super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
         customDelegate = config.delegate
     }
-    
+
     override func presentationTransitionWillBegin() {
         super.presentationTransitionWillBegin()
         guard let containerView = containerView else { return }
@@ -52,7 +54,7 @@ class PageSheetPresentationController: UIPresentationController {
         }
         containerView.insertSubview(dimmingView, at: 0)
         presentingViewController.beginAppearanceTransition(false, animated: true)
-        
+
         for subview in presentedViewController.view.subviews {
             guard let scrollView = subview as? UIScrollView else { continue }
             self.scrollView = scrollView
@@ -75,7 +77,7 @@ class PageSheetPresentationController: UIPresentationController {
         presentedViewController.transitionCoordinator?.animate(alongsideTransition: { [weak self] _ in
             self?.dimmingView.alpha = 1
         })
-        
+
         presentingViewController.beginAppearanceTransition(false, animated: true)
     }
 
@@ -154,14 +156,14 @@ extension PageSheetPresentationController {
             restoreViewFrame(with: config.duration)
         }
     }
-    
+
     private func panChanged(with percent: CGFloat, offset: CGFloat) {
         var frame = presentedViewFrame
         frame.origin.y += offset
         presentedViewController.view.frame = frame
         dimmingView.alpha = 1 - percent
     }
-    
+
     private func restoreViewFrame(with duration: TimeInterval) {
         UIView.animate(
             withDuration: duration,

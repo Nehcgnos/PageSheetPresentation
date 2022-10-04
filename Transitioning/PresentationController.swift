@@ -61,7 +61,7 @@ class PresentationController: UIPresentationController {
         }
         presentedViewController.view.frame.origin.y = containerView.frame.height
         presentedViewController.view.frame.size.height = preferredContentSize.height
-        
+
         let bezierPath = UIBezierPath(
             roundedRect: presentedViewController.view.bounds,
             byRoundingCorners: [.topLeft, .topRight],
@@ -70,7 +70,7 @@ class PresentationController: UIPresentationController {
         let mask = CAShapeLayer()
         mask.path = bezierPath.cgPath
         presentedViewController.view.layer.mask = mask
-        
+
         containerView.addSubview(presentedViewController.view)
         presentedViewController.transitionCoordinator?.animate(alongsideTransition: { [weak self] _ in
             self?.dimmingView.alpha = 1
@@ -143,7 +143,6 @@ extension PresentationController {
         default:
             print("other", percent, velocity)
 //            interactor.cancel()
-            break
         }
     }
 }
