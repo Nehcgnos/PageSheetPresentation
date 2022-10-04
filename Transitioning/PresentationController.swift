@@ -32,10 +32,6 @@ class PresentationController: UIPresentationController {
         interactor.wantsInteractiveStart = true
     }
 
-    deinit {
-        print(#function)
-    }
-
     override func presentationTransitionWillBegin() {
         super.presentationTransitionWillBegin()
         guard let containerView = containerView else { return }

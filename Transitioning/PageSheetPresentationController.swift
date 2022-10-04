@@ -26,19 +26,18 @@ class PageSheetPresentationController: UIPresentationController {
         case dismissing
     }
 
-    var isInteractionEnabled = true
-    var transitionDuration: TimeInterval = 0.52
-    var state: State = .presenting
-    var maskColor = UIColor.black.withAlphaComponent(0.5)
-    weak var customDelegate: CustomPresentationControllerDelegate?
-
+    weak private var customDelegate: CustomPresentationControllerDelegate?
+    private let config: TransitionConfig
+    private var state: State = .presenting
     private weak var scrollView: UIScrollView?
     private let dimmingView = UIView()
     private var presentedViewFrame: CGRect = .zero
     private var shouldDismiss = true
 
-    deinit {
-        print(#function)
+    init(presentedViewController: UIViewController, presenting presentingViewController: UIViewController?, config: TransitionConfig) {
+        self.config = config
+        super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
+        customDelegate = config.delegate
     }
     
     override func presentationTransitionWillBegin() {
@@ -46,19 +45,21 @@ class PageSheetPresentationController: UIPresentationController {
         guard let containerView = containerView else { return }
         state = .presenting
         dimmingView.alpha = 0
-        dimmingView.backgroundColor = maskColor
+        dimmingView.backgroundColor = config.maskColor
         dimmingView.frame = containerView.bounds
-        dimmingView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapDimmingView)))
+        if config.dismissOnTapWhiteSpace {
+            dimmingView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapDimmingView)))
+        }
         containerView.insertSubview(dimmingView, at: 0)
         presentingViewController.beginAppearanceTransition(false, animated: true)
-
+        
         for subview in presentedViewController.view.subviews {
             guard let scrollView = subview as? UIScrollView else { continue }
             self.scrollView = scrollView
             break
         }
 
-        if isInteractionEnabled {
+        if config.isInteractionEnabled {
             let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handle(pan:)))
             panGesture.delegate = self
             presentedViewController.view.addGestureRecognizer(panGesture)
@@ -74,6 +75,8 @@ class PageSheetPresentationController: UIPresentationController {
         presentedViewController.transitionCoordinator?.animate(alongsideTransition: { [weak self] _ in
             self?.dimmingView.alpha = 1
         })
+        
+        presentingViewController.beginAppearanceTransition(false, animated: true)
     }
 
     override func presentationTransitionDidEnd(_ completed: Bool) {
@@ -129,7 +132,7 @@ extension PageSheetPresentationController {
             panChanged(with: actualPercent, offset: offset)
         case .cancelled:
             scrollView?.bounces = true
-            restoreViewFrame(with: transitionDuration)
+            restoreViewFrame(with: config.duration)
         case .ended:
             scrollView?.bounces = true
             let velocity = gesture.velocity(in: containerView).y
@@ -138,19 +141,17 @@ extension PageSheetPresentationController {
                     let offset = presentedViewController.view.frame.minY - presentedViewFrame.minY
                     let actualPercent = offset / presentedViewFrame.height
                     customDelegate?.customPresentationControllerDidAttemptToDismiss(self)
-                    restoreViewFrame(with: transitionDuration * (1 - actualPercent))
+                    restoreViewFrame(with: config.duration * (1 - actualPercent))
                 }
                 return
             }
-            let duration = transitionDuration * min(1 - percent, 1)
             if percent > 0.4 || velocity > 900 {
-                transitionDuration = duration
                 presentedViewController.dismiss(animated: true)
             } else {
-                restoreViewFrame(with: duration)
+                restoreViewFrame(with: config.duration)
             }
         default:
-            restoreViewFrame(with: transitionDuration)
+            restoreViewFrame(with: config.duration)
         }
     }
     
@@ -179,7 +180,7 @@ extension PageSheetPresentationController {
 
 extension PageSheetPresentationController: UIViewControllerAnimatedTransitioning {
     func transitionDuration(using _: UIViewControllerContextTransitioning?) -> TimeInterval {
-        transitionDuration
+        config.duration
     }
 
     func animateTransition(using context: UIViewControllerContextTransitioning) {
@@ -189,7 +190,7 @@ extension PageSheetPresentationController: UIViewControllerAnimatedTransitioning
     private func startAnimation(using context: UIViewControllerContextTransitioning) {
         let containerView = context.containerView
         UIView.animate(
-            withDuration: transitionDuration,
+            withDuration: config.duration,
             delay: 0,
             usingSpringWithDamping: 1,
             initialSpringVelocity: 1,
@@ -218,7 +219,7 @@ extension PageSheetPresentationController: UIGestureRecognizerDelegate {
         guard scrollView.layer.contains(location) else {
             return true
         }
-        return scrollView.contentOffset.y <= 0
+        return scrollView.contentOffset.y == 0
     }
 
     func gestureRecognizer(_: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer) -> Bool {

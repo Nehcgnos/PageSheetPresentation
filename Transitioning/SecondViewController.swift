@@ -40,8 +40,4 @@ class SecondViewController: UIViewController {
         super.viewDidDisappear(animated)
 //        print(String(describing: self), #function)
     }
-    
-    deinit {
-        print(#function)
-    }
 }

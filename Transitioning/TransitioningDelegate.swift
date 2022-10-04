@@ -36,8 +36,4 @@ class TransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
         presentationController = controller
         return controller
     }
-    
-    deinit {
-        print(#function)
-    }
 }

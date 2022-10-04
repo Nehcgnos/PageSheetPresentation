@@ -9,26 +9,22 @@ import UIKit
 
 struct TransitionConfig {
     let maskColor: UIColor?
+    let duration: TimeInterval
     let isInteractionEnabled: Bool
     let dismissOnTapWhiteSpace: Bool
-    let duration: TimeInterval
     let fromViewTransform: CGAffineTransform?
     weak var delegate: CustomPresentationControllerDelegate?
 }
 
 class PageSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
     
-    var transitionDuration: TimeInterval = 0.52
-    
-    var isInteractionEnabled = true
-    
-    weak var delegate: CustomPresentationControllerDelegate? {
-        didSet {
-            presentationController?.customDelegate = delegate
-        }
-    }
+    private let config: TransitionConfig
     
     weak var presentationController: PageSheetPresentationController?
+    
+    init(config: TransitionConfig) {
+        self.config = config
+    }
     
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         presentationController
@@ -39,15 +35,8 @@ class PageSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningDel
     }
 
     func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
-        let controller = PageSheetPresentationController(presentedViewController: presented, presenting: presenting)
-        controller.transitionDuration = transitionDuration
-        controller.isInteractionEnabled = isInteractionEnabled
-        controller.customDelegate = delegate
+        let controller = PageSheetPresentationController(presentedViewController: presented, presenting: presenting, config: config)
         presentationController = controller
         return controller
-    }
-    
-    deinit {
-        print(#function)
     }
 }

@@ -9,14 +9,20 @@ import UIKit
 
 class ThirdViewController: UIViewController {
     let customTransitioningDelegate = TransitioningDelegate()
-    let pageSheetTransitioningDelegate = PageSheetTransitioningDelegate()
+
+    private lazy var pageSheetTransitioningDelegate = PageSheetTransitioningDelegate(config: TransitionConfig(
+        maskColor: .black.withAlphaComponent(0.4),
+        duration: 0.52,
+        isInteractionEnabled: true,
+        dismissOnTapWhiteSpace: true,
+        fromViewTransform: nil,
+        delegate: self
+    ))
+
     private var shouldDismiss = true
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-//        transitioningDelegate = customTransitioningDelegate
-        pageSheetTransitioningDelegate.isInteractionEnabled = true
-        pageSheetTransitioningDelegate.delegate = self
         transitioningDelegate = pageSheetTransitioningDelegate
         modalPresentationStyle = .custom
     }
@@ -44,6 +50,11 @@ class ThirdViewController: UIViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        print(String(describing: self), #function)
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
         print(String(describing: self), #function)
     }
 
