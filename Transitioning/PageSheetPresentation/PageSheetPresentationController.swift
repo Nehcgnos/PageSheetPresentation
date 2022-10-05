@@ -125,10 +125,7 @@ extension PageSheetPresentationController {
             var offset = deltaY
             var actualPercent = percent
             if !shouldDismiss {
-                let y = deltaY
-                let max = 0.25 * presentedViewFrame.height
-                offset = 2.6 * max / (1 + 4338.47 / pow(y, 1.14791))
-                print(offset)
+                offset = 3 * deltaY / (3.5 + 0.02 * deltaY)
                 actualPercent = offset / presentedViewController.view.frame.height
             }
             panChanged(with: actualPercent, offset: offset)
@@ -201,9 +198,16 @@ extension PageSheetPresentationController: UIViewControllerAnimatedTransitioning
             if self.state == .presenting {
                 guard let toView = context.view(forKey: .to) else { return }
                 toView.frame.origin.y = containerView.frame.height - toView.frame.height
+                if let transform = self.config.fromViewTransform {
+                    context.viewController(forKey: .from)?.view.transform = transform
+                }
             } else {
                 guard let fromView = context.view(forKey: .from) else { return }
                 fromView.frame.origin.y = containerView.frame.height
+                context.viewController(forKey: .to)?.view.transform = .identity
+                if let _ = self.config.fromViewTransform {
+                    context.viewController(forKey: .from)?.view.transform = .identity
+                }
             }
         } completion: { finished in
             guard finished else { return }

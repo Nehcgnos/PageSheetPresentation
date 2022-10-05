@@ -15,7 +15,7 @@ class ThirdViewController: UIViewController {
         duration: 0.52,
         isInteractionEnabled: true,
         dismissOnTapWhiteSpace: true,
-        fromViewTransform: nil,
+        fromViewTransform: CGAffineTransform(scaleX: 0.895, y: 0.895),
         delegate: self
     ))
 
@@ -23,6 +23,7 @@ class ThirdViewController: UIViewController {
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+//        transitioningDelegate = customTransitioningDelegate
         transitioningDelegate = pageSheetTransitioningDelegate
         modalPresentationStyle = .custom
     }
@@ -30,7 +31,8 @@ class ThirdViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         var size = view.bounds.size
-        size.height *= 0.8
+        size.height = 400
+        size.height = 627
         preferredContentSize = size
         presentationController?.delegate = self
     }
@@ -66,7 +68,7 @@ extension ThirdViewController: CustomPresentationControllerDelegate {
     }
 
     func customPresentationControllerDidAttemptToDismiss(_: UIPresentationController) {
-        showAlert()
+//        showAlert()
     }
 
     private func showAlert() {
@@ -85,7 +87,7 @@ extension ThirdViewController: UIAdaptivePresentationControllerDelegate {
     }
 
     func presentationControllerDidAttemptToDismiss(_: UIPresentationController) {
-        showAlert()
+//        showAlert()
     }
 }
 

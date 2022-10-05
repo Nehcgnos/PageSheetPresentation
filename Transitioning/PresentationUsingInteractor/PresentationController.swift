@@ -123,8 +123,15 @@ extension PresentationController {
                 presentedViewController.dismiss(animated: true)
             }
         case .changed:
-            scrollView?.bounces = percent < 0
-            interactor.update(percent)
+            let y = deltaY
+            let max = 0.25 * presentedViewController.view.frame.height
+            let offset = 2.6 * max / (1 + 4338.47 / pow(y, 1.14791))
+            let actualPercent = offset / presentedViewController.view.frame.height
+            scrollView?.bounces = actualPercent < 0
+            interactor.update(actualPercent)
+            
+//            scrollView?.bounces = percent < 0
+//            interactor.update(percent)
         case .cancelled:
             scrollView?.bounces = true
             isInteractive = false
@@ -132,17 +139,14 @@ extension PresentationController {
         case .ended:
             scrollView?.bounces = true
             isInteractive = false
+            interactor.completionSpeed = 1
             if percent > 0.5 || velocity > 900 {
-                interactor.completionSpeed = (1 - velocity) * transitionDuration
-                interactor.finish()
-                print("finish", percent, velocity)
+//                interactor.finish()
             } else {
-                interactor.cancel()
-                print("cancel", percent, velocity)
             }
+            interactor.cancel()
         default:
-            print("other", percent, velocity)
-//            interactor.cancel()
+            interactor.cancel()
         }
     }
 }
